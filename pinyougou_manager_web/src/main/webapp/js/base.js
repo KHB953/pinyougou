@@ -1,2 +1,2 @@
-// 构建app模块时引入pagination模块
+// 构建app模块
 var app=angular.module('pinyougou',[]);

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/security"
+            xmlns:bean="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--以下页面不拦截-->
+    <http pattern="/login.html" security="none"></http>
+    <http pattern="/css/**" security="none"></http>
+    <http pattern="/img/**" security="none"></http>
+    <http pattern="/js/**" security="none"></http>
+    <http pattern="/plugins/**" security="none"></http>
+
+    <!--拦截规则-->
+    <http use-expressions="false">
+
+        <intercept-url pattern="/**" access="ROLE_ADMIN"/>
+
+        <form-login login-page="/login.html" default-target-url="/admin/index.html" authentication-failure-url="/login.html" always-use-default-target="true"/>
+
+        <csrf disabled="true"></csrf>
+        <headers>
+            <!--系统中使用了框架页，需要设置框架页的策略为SAMEORIGIN  policy 策略-->
+            <frame-options policy="SAMEORIGIN"/>
+        </headers>
+
+        <logout></logout>
+    </http>
+
+    <!--认证管理器-->
+    <authentication-manager>
+        <authentication-provider>
+            <user-service>
+                <user name="admin" password="123" authorities="ROLE_ADMIN"></user>
+                <user name="bin" password="123" authorities="ROLE_ADMIN"></user>
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+
+</bean:beans>

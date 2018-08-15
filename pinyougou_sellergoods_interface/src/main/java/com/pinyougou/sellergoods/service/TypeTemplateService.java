@@ -66,4 +66,11 @@ public interface TypeTemplateService {
 	 * @return
 	 */
 	List<Map> selectOptionList();
+
+	/**
+	 * 模板下拉列表
+	 * @return
+	 */
+    List<Map> findTemplateList();
+
 }

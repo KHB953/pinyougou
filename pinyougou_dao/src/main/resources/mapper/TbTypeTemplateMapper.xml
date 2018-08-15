@@ -148,7 +148,8 @@
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map" >
+
+    <update id="updateByExampleSelective" parameterType="map" >
     update tb_type_template
     <set >
       <if test="record.id != null" >
@@ -209,6 +210,8 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-
+  <select id="findTemplateList" resultType="java.util.Map">
+    select id,name as text from tb_type_template;
+  </select>
 
 </mapper>

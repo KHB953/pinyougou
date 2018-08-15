@@ -5,35 +5,23 @@ import java.util.Date;
 
 public class TbSeller  implements Serializable {
     private String sellerId;
-
     private String name;
-
     private String nickName;
-
     private String password;
-
     private String email;
-
     private String mobile;
-
     private String telephone;
-
     private String status;
-
     private String addressDetail;
-
     private String linkmanName;
-
     private String linkmanQq;
-
     private String linkmanMobile;
-
     private String linkmanEmail;
-
+    //营业执照号
     private String licenseNumber;
-
+    //税务登记证号
     private String taxNumber;
-
+    //组织机构代码证
     private String orgNumber;
 
     private Long address;
@@ -43,7 +31,7 @@ public class TbSeller  implements Serializable {
     private String brief;
 
     private Date createTime;
-
+    //法定代表人
     private String legalPerson;
 
     private String legalPersonCardId;

@@ -1,11 +1,11 @@
- //控制层 
-app.controller('sellerController' ,function($scope,$controller   ,sellerService){	
+ //控制层
+app.controller('sellerController' ,function($scope,$controller,manager_sellerService){
 	
 	$controller('baseController',{$scope:$scope});//继承
 	
     //读取列表数据绑定到表单中  
 	$scope.findAll=function(){
-		sellerService.findAll().success(
+		manager_sellerService.findAll().success(
 			function(response){
 				$scope.list=response;
 			}			
@@ -14,7 +14,7 @@ app.controller('sellerController' ,function($scope,$controller   ,sellerService)
 	
 	//分页
 	$scope.findPage=function(page,rows){			
-		sellerService.findPage(page,rows).success(
+		manager_sellerService.findPage(page,rows).success(
 			function(response){
 				$scope.list=response.rows;	
 				$scope.paginationConf.totalItems=response.total;//更新总记录数
@@ -24,7 +24,7 @@ app.controller('sellerController' ,function($scope,$controller   ,sellerService)
 	
 	//查询实体 
 	$scope.findOne=function(id){				
-		sellerService.findOne(id).success(
+		manager_sellerService.findOne(id).success(
 			function(response){
 				$scope.entity= response;					
 			}
@@ -35,9 +35,9 @@ app.controller('sellerController' ,function($scope,$controller   ,sellerService)
 	$scope.save=function(){				
 		var serviceObject;//服务层对象  				
 		if($scope.entity.id!=null){//如果有ID
-			serviceObject=sellerService.update( $scope.entity ); //修改  
+			serviceObject=manager_sellerService.update( $scope.entity ); //修改
 		}else{
-			serviceObject=sellerService.add( $scope.entity  );//增加 
+			serviceObject=manager_sellerService.add( $scope.entity  );//增加
 		}				
 		serviceObject.success(
 			function(response){
@@ -55,7 +55,7 @@ app.controller('sellerController' ,function($scope,$controller   ,sellerService)
 	//批量删除 
 	$scope.dele=function(){			
 		//获取选中的复选框			
-		sellerService.dele( $scope.selectIds ).success(
+		manager_sellerService.dele( $scope.selectIds ).success(
 			function(response){
 				if(response.success){
 					$scope.reloadList();//刷新列表
@@ -68,12 +68,25 @@ app.controller('sellerController' ,function($scope,$controller   ,sellerService)
 	
 	//搜索
 	$scope.search=function(page,rows){			
-		sellerService.search(page,rows,$scope.searchEntity).success(
+		manager_sellerService.search(page,rows,$scope.searchEntity).success(
 			function(response){
 				$scope.list=response.rows;	
 				$scope.paginationConf.totalItems=response.total;//更新总记录数
 			}			
 		);
 	}
-    
+
+	//更新商家状态
+	$scope.updateStatus=function (sellerId, status) {
+		manager_sellerService.updateStatus(sellerId,status).success(
+			function (response) {
+				if (response.success){
+					$scope.reloadList();
+				} else {
+					alert("失败")
+				}
+            }
+		)
+    }
+
 });	

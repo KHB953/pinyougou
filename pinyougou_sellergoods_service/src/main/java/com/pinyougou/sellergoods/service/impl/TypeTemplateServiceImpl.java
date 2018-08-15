@@ -120,4 +120,14 @@ public class TypeTemplateServiceImpl implements TypeTemplateService {
 	public List<Map> selectOptionList() {
 		return tbBrandMapper.selectOptionList();
 	}
+
+	/**
+	 * 模板下拉列表
+	 *
+	 * @return
+	 */
+	@Override
+	public List<Map> findTemplateList() {
+		return typeTemplateMapper.findTemplateList();
+	}
 }

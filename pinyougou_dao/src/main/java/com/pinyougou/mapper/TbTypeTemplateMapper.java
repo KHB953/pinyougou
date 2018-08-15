@@ -30,5 +30,9 @@ public interface TbTypeTemplateMapper {
 
     int updateByPrimaryKey(TbTypeTemplate record);
 
-
+    /**
+     * 模板下拉列表
+     * @return
+     */
+    List<Map> findTemplateList();
 }
