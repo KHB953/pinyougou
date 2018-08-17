@@ -38,15 +38,12 @@
     </authentication-manager>
 
     <!-- 认证类 -->
-    <beans:bean id="userDetailService" class="com.pinyougou.shop.service.UserDetailsServiceImpl">
-        <beans:property name="sellerService" ref="sellerService"></beans:property>
-    </beans:bean>
+    <beans:bean id="userDetailService" class="com.pinyougou.shop.service.UserDetailsServiceImpl"></beans:bean>
 
-    <!--引用dubbo服务-->
-    <dubbo:application name="pinyougou-shop-web" />
-    <dubbo:registry address="zookeeper://192.168.25.130:2181"/>
-    <dubbo:reference id="sellerService"  interface="com.pinyougou.sellergoods.service.SellerService" >
-    </dubbo:reference>
+    <!-- 引用dubbo 服务 -->
+    <dubbo:application name="pinyougou_shop_web" />
+    <dubbo:registry address="zookeeper://192.168.25.133:2181"/>
+    <dubbo:annotation package="com.pinyougou.shop.service " />
 
     <!--密码加密-->
     <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></beans:bean>

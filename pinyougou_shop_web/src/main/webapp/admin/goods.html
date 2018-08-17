@@ -14,10 +14,18 @@
     <link rel="stylesheet" href="../css/style.css">
 	<script src="../plugins/jQuery/jquery-2.2.3.min.js"></script>
     <script src="../plugins/bootstrap/js/bootstrap.min.js"></script>
+
+	<!--引入angular.js-->
+	<script type="text/javascript" src="../plugins/angularjs/angular.min.js"></script>
+
+	<script type="text/javascript" src="../js/base.js"></script>
+	<script type="text/javascript" src="../js/service/goodsService.js"></script>
+	<script type="text/javascript" src="../js/controller/baseController.js"></script>
+	<script type="text/javascript" src="../js/controller/goodsController.js"></script>
  
 </head>
 
-<body class="hold-transition skin-red sidebar-mini" >
+<body class="hold-transition skin-red sidebar-mini" ng-app="pinyougou" ng-controller="goodsController">
   <!-- .box-body -->
                 
                     <div class="box-header with-border">
@@ -50,7 +58,7 @@
                                          	<option value="2">审核通过</option>    
                                          	<option value="3">已驳回</option>                                     
                                         </select>
-							                  商品名称：<input >									
+							                  商品名称：<input  >
 									<button class="btn btn-default" >查询</button>                                    
                                 </div>
                             </div>

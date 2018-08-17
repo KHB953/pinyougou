@@ -5,6 +5,8 @@ import java.util.Map;
 import com.pinyougou.pojo.TbTypeTemplate;
 
 import entity.PageResult;
+import org.w3c.dom.ls.LSException;
+
 /**
  * 服务层接口
  * @author Administrator
@@ -73,4 +75,9 @@ public interface TypeTemplateService {
 	 */
     List<Map> findTemplateList();
 
+	/**
+	 * 规格列表 包含规格选项列表
+	 * @return
+	 */
+	List<Map> findSpecList(Long id);
 }
