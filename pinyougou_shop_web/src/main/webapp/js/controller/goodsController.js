@@ -1,5 +1,5 @@
  //控制层 
-app.controller('goodsController' ,function($scope,$controller ,goodsService,uploadService,shop_web_itemCatService,typeTemplateService){
+app.controller('shop_web_goodsController' ,function($scope,$controller ,goodsService,uploadService,shop_web_itemCatService,typeTemplateService,$location){
 	
 	$controller('baseController',{$scope:$scope});//继承
 	
@@ -31,21 +31,28 @@ app.controller('goodsController' ,function($scope,$controller ,goodsService,uplo
 		);				
 	}
 	
-	//增加
-	$scope.add=function(){
+	//添加或者更新
+	$scope.save=function(){
 		//获取富文本编辑器中内容
         $scope.entity.goodsDesc.introduction=editor.html();
 
-        goodsService.add( $scope.entity  ).success(
+        var objectService;
+        if ($scope.entity.goods.id != null){
+            objectService=goodsService.update( $scope.entity  )
+		} else {
+            objectService=goodsService.add( $scope.entity  )
+		}
+
+        objectService.success(
 			function(response){
 				if(response.success){
-                    alert("新增成功");
+                    alert(response.message);
                     //没有list列表 保存成功就清空数据
                     $scope.entity={};
                     //清空富文本编辑器
                     editor.html('');
                 }else{
-					alert("新增失败");
+					alert(response.message);
 				}
 			}		
 		);				
@@ -90,7 +97,7 @@ app.controller('goodsController' ,function($scope,$controller ,goodsService,uplo
 				}
             }
 		).error(function () {
-			alert("上传发生错误！")
+			alert("上传发生错误,请重试！")
         })
     }
 
@@ -154,7 +161,10 @@ app.controller('goodsController' ,function($scope,$controller ,goodsService,uplo
                 $scope.typeTemplate.brandIds=JSON.parse($scope.typeTemplate.brandIds);
 
                 // 在用户更新模板ID时，读取模板中的扩展属性 赋给商品的扩展属性 。
-                $scope.entity.goodsDesc.customAttributeItems=JSON.parse($scope.typeTemplate.customAttributeItems);
+				if ($location.search()['id']==null){
+					//如果是新增 才执行
+                    $scope.entity.goodsDesc.customAttributeItems=JSON.parse($scope.typeTemplate.customAttributeItems);
+                }
 
             }
         );
@@ -237,6 +247,77 @@ app.controller('goodsController' ,function($scope,$controller ,goodsService,uplo
 
         return newList;
     }
+
+
+    //商品列表 商品状态显示数组
+    $scope.status=['未审核','已审核','审核未通过','关闭'];//商品状态
+	//使用异步加载分类名称
+    $scope.itemCatList=[];//商品分类列表
+	$scope.findItemCatList=function () {
+        shop_web_itemCatService.findAll().success(
+        	function (response) {
+				for (var i =1;i<response.length;i++){
+					$scope.itemCatList[response[i].id]=response[i].name;
+				}
+            }
+		)
+    }
+
+    // 查询实体
+    $scope.findOne=function () {
+		var id = $location.search()['id']
+		if (id==null){
+			return;
+		}
+
+		goodsService.findOne(id).success(
+			function (response) {
+				//response 是响应的数据
+				$scope.entity=response;
+
+				//向富文本编辑器添加商品介绍
+                editor.html($scope.entity.goodsDesc.introduction);
+
+                //显示图片列表 查找到的是字符串需要转换
+                $scope.entity.goodsDesc.itemImages=JSON.parse($scope.entity.goodsDesc.itemImages);
+
+                //扩展属性 与（在用户更新模板ID时，读取模板中的扩展属性 赋给商品的扩展属性 。）发生冲突
+				// 根据id是否存在判断是新增还是修改
+                $scope.entity.goodsDesc.customAttributeItems=JSON.parse($scope.entity.goodsDesc.customAttributeItems);
+
+                //规格
+                $scope.entity.goodsDesc.specificationItems=JSON.parse($scope.entity.goodsDesc.specificationItems);
+
+                //显示SKU列表 规格列转换
+                for( var i=0;i<$scope.entity.itemList.length;i++ ){
+                    $scope.entity.itemList[i].spec = JSON.parse( $scope.entity.itemList[i].spec);
+                }
+
+
+            }
+		)
+		
+    }
+
+    //判断规格选项是否被选中
+	$scope.checkAttributeValue=function (specName,optionName) {
+        var items = $scope.entity.goodsDesc.specificationItems;
+        //判断规格是否存在
+        var object= $scope.searchObjectByKey(items,'attributeName',specName)
+		if (object != null){
+        	//如果能够查找到规格选项(数组) 就返回true
+        	if (object.attributeValue.indexOf(optionName)>=0){
+        		return true;
+			} else {
+        		return false;
+			}
+
+		} else {
+			return false;
+		}
+
+    }
+
 
 
 });	

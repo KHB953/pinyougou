@@ -1,5 +1,5 @@
 //服务层
-app.service('goodsService',function($http){
+app.service('manager_goodsService',function($http){
 	    	
 	//读取列表数据绑定到表单中
 	this.findAll=function(){
@@ -28,5 +28,10 @@ app.service('goodsService',function($http){
 	//搜索
 	this.search=function(page,rows,searchEntity){
 		return $http.post('../goods/search.do?page='+page+"&rows="+rows, searchEntity);
-	}    	
+	}
+
+    //商品状态更新 审核 驳回
+    this.updateGoodsStatus=function (ids,status) {
+        return $http.get('../goods/updateStatus.do?ids='+ids+'&status='+status);
+    }
 });

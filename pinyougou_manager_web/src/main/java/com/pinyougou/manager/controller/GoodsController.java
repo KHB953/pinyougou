@@ -2,6 +2,7 @@ package com.pinyougou.manager.controller;
 import java.util.List;
 
 import com.pinyougou.pojogroup.Goods;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,7 +65,18 @@ public class GoodsController {
 	 * @return
 	 */
 	@RequestMapping("/update")
-	public Result update(@RequestBody TbGoods goods){
+	public Result update(@RequestBody Goods goods){
+
+		//获取当前商家的id
+		String sellerId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+		Goods goods1 = goodsService.findOne(goods.getGoods().getId());
+		//判断更新的商品id是属于该商家  判断传过来的商家id与当前商家id是否一致
+		if ( !sellerId.equals(goods1.getGoods().getSellerId()) || !sellerId.equals(goods.getGoods().getSellerId())) {
+
+			return new Result(false, "非法操作");
+		}
+
 		try {
 			goodsService.update(goods);
 			return new Result(true, "修改成功");
@@ -80,7 +92,7 @@ public class GoodsController {
 	 * @return
 	 */
 	@RequestMapping("/findOne")
-	public TbGoods findOne(Long id){
+	public Goods findOne(Long id){
 		return goodsService.findOne(id);		
 	}
 	
@@ -110,6 +122,18 @@ public class GoodsController {
 	@RequestMapping("/search")
 	public PageResult search(@RequestBody TbGoods goods, int page, int rows  ){
 		return goodsService.findPage(goods, page, rows);		
+	}
+
+	@RequestMapping("/updateStatus")
+	public Result updateStatus(Long [] ids,String status){
+		try {
+			goodsService.updateStatus(ids,status);
+
+		    return new Result(true, "成功");
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return new Result(false, "失败");
+		}
 	}
 	
 }

@@ -1,4 +1,4 @@
-app.controller('shop_indexController',function ($scope,loginService) {
+app.controller('indexController',function ($scope,loginService) {
     // 显示当前用户名
     $scope.showLoginName=function () {
        loginService.loginName().success(

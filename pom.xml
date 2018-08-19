@@ -9,15 +9,7 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
-    <modules>
-        <module>pinyougou_pojo</module>
-        <module>pinyougou_common</module>
-        <module>pinyougou_dao</module>
-        <module>pinyougou_sellergoods_interface</module>
-        <module>pinyougou_sellergoods_service</module>
-        <module>pinyougou_shop_web</module>
-        <module>pinyougou_manager_web</module>
-    </modules>
+
 
     <!-- 集中定义依赖版本号 -->
     <properties>

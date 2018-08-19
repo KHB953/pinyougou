@@ -11,6 +11,8 @@ import com.pinyougou.pojogroup.Goods;
 import com.pinyougou.sellergoods.service.GoodsService;
 import entity.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.transaction.annotation.Transactional;
 import util.Constant;
 
 import java.util.Date;
@@ -72,11 +74,23 @@ public class GoodsServiceImpl implements GoodsService {
 		goods.getGoods().setAuditStatus(Constant.GOODS_STATUS_NOT_APPL);
 		//插入商品表
 		goodsMapper.insert(goods.getGoods());
+
 		//设置商品描述表的商品id
 		goods.getGoodsDesc().setGoodsId(goods.getGoods().getId());
 		//插入商品描述表
 		goodsDescMapper.insert(goods.getGoodsDesc());
+		//插入商品SKU列表
+		saveItemList(goods);
 
+
+	}
+
+	/**
+	 * 插入SKU列表数据
+	 * 方法抽取
+	 * @param goods
+	 */
+	private void saveItemList(Goods goods) {
 		if (Constant.GOODS_ISENABLESPEC.equals(goods.getGoods().getIsEnableSpec())){
 
 			//itemList  [{"spec":{"网络":"电信2G","机身内存":"16G"},"price":0,"num":99999,"status":"0","isDefault":"0"}]
@@ -108,10 +122,13 @@ public class GoodsServiceImpl implements GoodsService {
 			itemMapper.insert(item);
 
 		}
-
-
 	}
 
+	/**
+	 * 保存item  通用部分抽取
+	 * @param goods
+	 * @param item
+	 */
 	private void setItemValues(Goods goods, TbItem item) {
 		//设置商品分类 三级分类ID
 		item.setCategoryid(goods.getGoods().getCategory3Id());
@@ -145,32 +162,62 @@ public class GoodsServiceImpl implements GoodsService {
 	 * 修改
 	 */
 	@Override
-	public void update(TbGoods goods){
-		goodsMapper.updateByPrimaryKey(goods);
+	public void update(Goods goods){
+		//如果修改了商品 状态需要重新设置为 未申请 状态
+		goods.getGoods().setAuditStatus(Constant.GOODS_STATUS_NOT_APPL);
+
+		//保存商品列表
+		goodsMapper.updateByPrimaryKey(goods.getGoods());
+		// 保存商品扩展表
+		goodsDescMapper.updateByPrimaryKey(goods.getGoodsDesc());
+		// 原有SKU列表先删除;再添加
+		TbItemExample example = new TbItemExample();
+		TbItemExample.Criteria criteria = example.createCriteria();
+		criteria.andGoodsIdEqualTo(goods.getGoods().getId());
+		itemMapper.deleteByExample(example);
+
+		// 添加新的SKU列表
+		saveItemList(goods);
 	}	
 	
 	/**
-	 * 根据ID获取实体
+	 * 根据ID获取实体 goods goodsDesc itemList
 	 * @param id
 	 * @return
 	 */
 	@Override
-	public TbGoods findOne(Long id){
-		return goodsMapper.selectByPrimaryKey(id);
+	public Goods findOne(Long id){
+		Goods goods = new Goods();
+		TbGoods tbGoods = goodsMapper.selectByPrimaryKey(id);
+
+		goods.setGoods(tbGoods);
+		TbGoodsDesc tbGoodsDesc = goodsDescMapper.selectByPrimaryKey(id);
+		goods.setGoodsDesc(tbGoodsDesc);
+
+		TbItemExample example = new TbItemExample();
+		TbItemExample.Criteria criteria = example.createCriteria();
+		criteria.andGoodsIdEqualTo(id);
+		List<TbItem> itemList = itemMapper.selectByExample(example);
+		goods.setItemList(itemList);
+
+		return goods;
 	}
 
 	/**
-	 * 批量删除
+	 * 批量 逻辑删除
 	 */
 	@Override
 	public void delete(Long[] ids) {
 		for(Long id:ids){
-			goodsMapper.deleteByPrimaryKey(id);
+			TbGoods tbGoods = goodsMapper.selectByPrimaryKey(id);
+			tbGoods.setIsDelete(Constant.GOODS_ISDELETE);
+			goodsMapper.updateByPrimaryKey(tbGoods);
+
 		}		
 	}
 	
 	
-		@Override
+	@Override
 	public PageResult findPage(TbGoods goods, int pageNum, int pageSize) {
 		PageHelper.startPage(pageNum, pageSize);
 		
@@ -178,8 +225,9 @@ public class GoodsServiceImpl implements GoodsService {
 		Criteria criteria = example.createCriteria();
 		
 		if(goods!=null){			
-						if(goods.getSellerId()!=null && goods.getSellerId().length()>0){
-				criteria.andSellerIdLike("%"+goods.getSellerId()+"%");
+			if(goods.getSellerId()!=null && goods.getSellerId().length()>0){
+				//根据商家id精确查找
+				criteria.andSellerIdEqualTo(goods.getSellerId());
 			}
 			if(goods.getGoodsName()!=null && goods.getGoodsName().length()>0){
 				criteria.andGoodsNameLike("%"+goods.getGoodsName()+"%");
@@ -200,7 +248,8 @@ public class GoodsServiceImpl implements GoodsService {
 				criteria.andIsEnableSpecLike("%"+goods.getIsEnableSpec()+"%");
 			}
 			if(goods.getIsDelete()!=null && goods.getIsDelete().length()>0){
-				criteria.andIsDeleteLike("%"+goods.getIsDelete()+"%");
+				//非删除状态
+				criteria.andIsDeleteIsNull();
 			}
 	
 		}
@@ -208,5 +257,20 @@ public class GoodsServiceImpl implements GoodsService {
 		Page<TbGoods> page= (Page<TbGoods>)goodsMapper.selectByExample(example);		
 		return new PageResult(page.getTotal(), page.getResult());
 	}
-	
+
+
+	/**
+	 * 批量更新状态
+	 *
+	 * @param ids
+	 * @param status
+	 */
+	@Override
+	public void updateStatus(Long[] ids, String status) {
+		for (Long id : ids) {
+			TbGoods tbGoods = goodsMapper.selectByPrimaryKey(id);
+			tbGoods.setAuditStatus(status);
+			goodsMapper.updateByPrimaryKey(tbGoods);
+		}
+	}
 }

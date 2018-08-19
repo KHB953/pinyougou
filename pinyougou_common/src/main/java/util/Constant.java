@@ -30,6 +30,11 @@ public class Constant {
      * 启用规格
      */
     public static final String GOODS_ISENABLESPEC="1";
+    /**
+     *
+     * 逻辑删除状态
+     */
+    public static final String GOODS_ISDELETE="1";
 
 
 
