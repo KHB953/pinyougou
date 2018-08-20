@@ -53,4 +53,12 @@ public class Constant {
      *  删除
      */
     public static final String ITEM_STATUS_DELETE="3";
+
+    /**
+     *
+     * 广告状态 有效
+     */
+    public static final String CONTENT_STATUS_ISVALID="1";
+
+
 }
