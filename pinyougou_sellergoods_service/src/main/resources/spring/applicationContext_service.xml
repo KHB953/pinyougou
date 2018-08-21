@@ -10,5 +10,6 @@
     <dubbo:annotation package="com.pinyougou.sellergoods.service.impl" />
 
     <import resource="applicationContext_tx.xml"></import>
+    <import resource="applicationContext-redis.xml"></import>
 
 </beans>

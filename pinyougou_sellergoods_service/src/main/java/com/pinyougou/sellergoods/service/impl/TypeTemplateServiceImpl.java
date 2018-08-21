@@ -2,6 +2,7 @@ package com.pinyougou.sellergoods.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.pinyougou.mapper.TbBrandMapper;
@@ -15,7 +16,9 @@ import com.pinyougou.pojo.TbTypeTemplateExample.Criteria;
 import com.pinyougou.sellergoods.service.TypeTemplateService;
 import entity.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +36,9 @@ public class TypeTemplateServiceImpl implements TypeTemplateService {
 	private TbBrandMapper tbBrandMapper;
 	@Autowired
 	private TbSpecificationOptionMapper tbSpecificationOptionMapper;
+
+	@Autowired
+	private RedisTemplate redisTemplate;
 	
 	/**
 	 * 查询全部
@@ -112,8 +118,11 @@ public class TypeTemplateServiceImpl implements TypeTemplateService {
 			}
 	
 		}
-		
-		Page<TbTypeTemplate> page= (Page<TbTypeTemplate>)typeTemplateMapper.selectByExample(example);		
+
+		Page<TbTypeTemplate> page= (Page<TbTypeTemplate>)typeTemplateMapper.selectByExample(example);
+
+		//查询分页的时候调用此方法
+		saveToRedis();
 		return new PageResult(page.getTotal(), page.getResult());
 	}
 
@@ -159,5 +168,24 @@ public class TypeTemplateServiceImpl implements TypeTemplateService {
 		}
 
 		return mapList;
+	}
+
+	/**
+	 * 读取模板数据 将品牌列表和规格选项列表存入缓存
+	 */
+	private void saveToRedis(){
+		List<TbTypeTemplate> typeTemplates = findAll();
+		//循环模板 将品牌列表 和规格列表存入缓存
+		for (TbTypeTemplate typeTemplate : typeTemplates) {
+			List<Map> mapList = JSON.parseArray(typeTemplate.getBrandIds(), Map.class);
+			//品牌列表存入缓存
+			redisTemplate.boundHashOps("brandList").put(typeTemplate.getId(), mapList);
+
+			//根据模板id 查询规格列表
+			List<Map> specList = findSpecList(typeTemplate.getId());
+			redisTemplate.boundHashOps("specList").put(typeTemplate.getId(), specList);
+			System.out.println("缓存品牌列表和规格选项列表");
+		}
+
 	}
 }

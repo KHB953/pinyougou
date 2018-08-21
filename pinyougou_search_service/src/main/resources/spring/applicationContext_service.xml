@@ -9,5 +9,9 @@
     <dubbo:registry address="zookeeper://192.168.25.133:2181"/>
     <dubbo:annotation package="com.pinyougou.search.service.impl" />
 
+    <import resource="applicationContext-dao.xml"></import>
+    <import resource="applicationContext-redis.xml"></import>
+    <import resource="applicationContext_solr.xml"></import>
+
 
 </beans>
