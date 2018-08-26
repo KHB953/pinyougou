@@ -15,9 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import util.Constant;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 服务实现层
@@ -248,8 +246,9 @@ public class GoodsServiceImpl implements GoodsService {
 				criteria.andIsEnableSpecLike("%"+goods.getIsEnableSpec()+"%");
 			}
 			if(goods.getIsDelete()!=null && goods.getIsDelete().length()>0){
-				//非删除状态
-				criteria.andIsDeleteIsNull();
+
+				//未删除状态为"0" 删除状态为"1"
+				criteria.andIsDeleteEqualTo("0");
 			}
 	
 		}
@@ -272,5 +271,22 @@ public class GoodsServiceImpl implements GoodsService {
 			tbGoods.setAuditStatus(status);
 			goodsMapper.updateByPrimaryKey(tbGoods);
 		}
+	}
+
+	/**
+	 * 通过商品id查和状态查询item列表
+	 *
+	 * @param goodsIds
+	 * @param status
+	 * @return
+	 */
+	@Override
+	public List<TbItem> findItemListByGoodsIdandStatus(Long[] goodsIds, String status) {
+		TbItemExample example = new TbItemExample();
+		TbItemExample.Criteria criteria = example.createCriteria();
+		criteria.andGoodsIdIn(Arrays.asList(goodsIds));
+		criteria.andStatusEqualTo(status);
+		List<TbItem> tbItems = itemMapper.selectByExample(example);
+		return tbItems;
 	}
 }

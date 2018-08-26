@@ -1,7 +1,12 @@
 package com.pinyougou.manager.controller;
+import java.util.Arrays;
 import java.util.List;
 
+import com.pinyougou.page.service.ItemPageService;
+import com.pinyougou.pojo.TbItem;
 import com.pinyougou.pojogroup.Goods;
+import com.pinyougou.search.service.ItemSearchService;
+import com.pinyougou.sellergoods.service.ItemService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +17,8 @@ import com.pinyougou.sellergoods.service.GoodsService;
 
 import entity.PageResult;
 import entity.Result;
+import util.Constant;
+
 /**
  * controller
  * @author Administrator
@@ -23,6 +30,12 @@ public class GoodsController {
 
 	@Reference
 	private GoodsService goodsService;
+
+	@Reference
+	private ItemSearchService itemSearchService;
+
+	@Reference(timeout=40000)
+	private ItemPageService itemPageService;
 	
 	/**
 	 * 返回全部列表
@@ -105,6 +118,10 @@ public class GoodsController {
 	public Result delete(Long [] ids){
 		try {
 			goodsService.delete(ids);
+
+			// 删除 商品在索引库的索引数据
+			itemSearchService.deleteByGoodsIds(Arrays.asList(ids));
+
 			return new Result(true, "删除成功"); 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -127,13 +144,45 @@ public class GoodsController {
 	@RequestMapping("/updateStatus")
 	public Result updateStatus(Long [] ids,String status){
 		try {
+			//更新商品状态
 			goodsService.updateStatus(ids,status);
 
-		    return new Result(true, "成功");
+			// 当提交审核的商品为审核通过的时候 将其导入索引库
+			if(status.equals(Constant.GOODS_STATUS_APPROVED)) {
+				//通过商品id和状态
+				List<TbItem> itemList = goodsService.findItemListByGoodsIdandStatus(ids, status);
+				//调用搜索接口将数据导入到solr
+				if (itemList.size()>0){
+					itemSearchService.importList(itemList);
+
+				}else {
+					System.out.println("没有明细数据！");
+				}
+
+				//生成静态页面
+				for (Long id : ids) {
+					itemPageService.genItemHtml(id);
+				}
+
+			}
+
+
+			return new Result(true, "成功");
 		} catch (Exception e) {
 		    e.printStackTrace();
 		    return new Result(false, "失败");
 		}
 	}
-	
+
+	/**
+	 * 生成静态页（测试）
+	 * @param goodsId
+	 */
+	@RequestMapping("/genHtml")
+	public void genHtml(Long goodsId){
+		itemPageService.genItemHtml(goodsId);
+	}
+
+
+
 }

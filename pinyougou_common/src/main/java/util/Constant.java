@@ -8,23 +8,19 @@ public class Constant {
 
     /**
      * 状态
-     * 未申请
+     * 未审核
      */
     public static final String GOODS_STATUS_NOT_APPL="0";
-    /**
-     *
-     *  申请中
-     */
-    public static final String GOODS_STATUS_APPLING="1";
+
     /**
      * 审核通过
      */
-    public static final String GOODS_STATUS_APPROVED="2";
+    public static final String GOODS_STATUS_APPROVED="1";
     /**
      *
      * 已驳回
      */
-    public static final String GOODS_STATUS_REJECTED="3";
+    public static final String GOODS_STATUS_REJECTED="2";
     /**
      *
      * 启用规格
