@@ -1,4 +1,5 @@
 package com.pinyougou.sellergoods.service.impl;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.alibaba.dubbo.config.annotation.Service;
@@ -132,5 +133,22 @@ public class ItemServiceImpl implements ItemService {
 		Page<TbItem> page= (Page<TbItem>)itemMapper.selectByExample(example);		
 		return new PageResult(page.getTotal(), page.getResult());
 	}
-	
+
+
+	/**
+	 * 根据商品id查出 sku列表
+	 *
+	 * @param ids
+	 * @return
+	 */
+	@Override
+	public List<TbItem> findItemsByIds(Long[] ids) {
+		TbItemExample example = new TbItemExample();
+		Criteria criteria = example.createCriteria();
+		criteria.andGoodsIdIn(Arrays.asList(ids));
+		// 审核状态
+		criteria.andStatusEqualTo("1");
+		List<TbItem> items = itemMapper.selectByExample(example);
+		return items;
+	}
 }

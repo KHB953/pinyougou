@@ -8,7 +8,9 @@
     <artifactId>pinyougou</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-
+    <modules>
+        <module>pinyougou_user_service</module>
+    </modules>
 
 
     <!-- 集中定义依赖版本号 -->

@@ -3,15 +3,19 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
 
-
+    <!--提供服务-->
     <dubbo:protocol name="dubbo" port="20884"></dubbo:protocol>
     <dubbo:application name="pinyougou_search_service"/>
     <dubbo:registry address="zookeeper://192.168.25.133:2181"/>
     <dubbo:annotation package="com.pinyougou.search.service.impl" />
 
-    <import resource="applicationContext-dao.xml"></import>
-    <import resource="applicationContext-redis.xml"></import>
-    <import resource="applicationContext_solr.xml"></import>
+    <!--消费者-->
+    <dubbo:reference interface="com.pinyougou.sellergoods.service.ItemService" id="itemService" timeout="100000"></dubbo:reference>
+
+    <!--设置全局超时-->
+    <dubbo:provider timeout="100000"></dubbo:provider>
+
+
 
 
 </beans>
