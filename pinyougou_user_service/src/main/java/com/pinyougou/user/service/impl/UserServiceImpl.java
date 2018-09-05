@@ -1,7 +1,13 @@
 package com.pinyougou.user.service.impl;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.MSUtils;
 import com.pinyougou.user.service.UserService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
@@ -13,6 +19,12 @@ import com.pinyougou.pojo.TbUserExample.Criteria;
 
 
 import entity.PageResult;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
+
+import javax.jms.*;
 
 /**
  * 服务实现层
@@ -24,6 +36,19 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private TbUserMapper userMapper;
+
+	@Autowired
+	private RedisTemplate<String,Object> redisTemplate;
+
+	@Autowired
+	private JmsTemplate jmsTemplate;
+	@Autowired
+	private Destination smsDestination;
+
+	@Value("$(templage_code)")
+	private String template_code;
+	@Value("$(sign_name)")
+	private String sign_name;
 	
 	/**
 	 * 查询全部
@@ -48,6 +73,14 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public void add(TbUser user) {
+		//创建日期和修改日期
+		user.setCreated(new Date());
+		user.setUpdated(new Date());
+		//可以从前端传过来 这里已写死
+		user.setSourceType("1");
+		//对密码进行加密 md5
+		String password = DigestUtils.md5Hex(user.getPassword());
+		user.setPassword(password);
 		userMapper.insert(user);		
 	}
 
@@ -81,15 +114,15 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	
-		@Override
+	@Override
 	public PageResult findPage(TbUser user, int pageNum, int pageSize) {
 		PageHelper.startPage(pageNum, pageSize);
 		
 		TbUserExample example=new TbUserExample();
 		Criteria criteria = example.createCriteria();
 		
-		if(user!=null){			
-						if(user.getUsername()!=null && user.getUsername().length()>0){
+		if(user!=null){
+			if(user.getUsername()!=null && user.getUsername().length()>0){
 				criteria.andUsernameLike("%"+user.getUsername()+"%");
 			}
 			if(user.getPassword()!=null && user.getPassword().length()>0){
@@ -134,5 +167,53 @@ public class UserServiceImpl implements UserService {
 		Page<TbUser> page= (Page<TbUser>)userMapper.selectByExample(example);		
 		return new PageResult(page.getTotal(), page.getResult());
 	}
-	
+
+	/**
+	 * 生成短信验证码
+	 *
+	 * @param phone
+	 */
+	@Override
+	public void createSmsCode(final String phone) {
+		//随机生成一个六位数的验证码
+		final String code =  (long) (Math.random()*1000000)+"";
+		System.out.println("验证码："+code);
+		//存入缓存
+		redisTemplate.boundHashOps("smscode").put(phone, code);
+		//发送短信到activeMq
+		jmsTemplate.send(smsDestination, new MessageCreator() {
+			@Override
+			public Message createMessage(Session session) throws JMSException {
+				MapMessage mapMessage = session.createMapMessage();
+				mapMessage.setString("mobile", phone);
+				mapMessage.setString("template_code", template_code);
+				mapMessage.setString("sign_name", sign_name);
+				Map map = new HashMap();
+				map.put("number", code);
+				mapMessage.setString("param", JSON.toJSONString(map));
+
+				return mapMessage;
+			}
+		});
+	}
+
+	/**
+	 * 确认验证码是否一致
+	 *
+	 * @param phone
+	 * @param code
+	 * @return
+	 */
+	@Override
+	public boolean checkSmsCode(String phone, String code) {
+		//冲缓存中获取验证码
+		String syscode = (String) redisTemplate.boundHashOps("smscode").get(phone);
+		if (syscode == null){
+			return false;
+		}
+		if ( ! syscode.equals(code)){
+			return false;
+		}
+		return true;
+	}
 }
